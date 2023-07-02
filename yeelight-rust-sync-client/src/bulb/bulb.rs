@@ -1,44 +1,27 @@
 use std::collections::HashMap;
-use std::io::prelude::*;
-use std::net::Ipv4Addr;
-use std::net::TcpStream;
 
-use serde::Serialize;
+use yeelight_protocol::{bulb_protocol, messages_command, types, Serialize};
 
-use crate::{messages_command, messages_result, types};
+use super::tcp_request::tcp_request;
 
 pub struct Bulb {
-    address: Ipv4Addr,
-    port: u16,
-}
-
-fn serialize<T>(message: T) -> Result<String, String>
-where
-    T: Serialize,
-{
-    match serde_json::to_string(&message) {
-        Ok(value) => Ok(value),
-        Err(err) => Err(String::from(err.to_string())),
-    }
+    bulb_protocol: bulb_protocol::BulbProtocol,
 }
 
 impl Bulb {
     pub fn new(address: &str) -> Self {
         Self {
-            address: address
-                .parse::<Ipv4Addr>()
-                .expect("Задан неправильный адрес"),
-            port: 55443,
+            bulb_protocol: bulb_protocol::BulbProtocol::new(address),
         }
     }
 
+    /// This method is used to retrieve current property of smart LED.
     pub fn get_prop(
         &self,
         props: &Vec<messages_command::AllProperties>,
     ) -> Result<HashMap<messages_command::AllProperties, String>, String> {
         let request = messages_command::GetProp::new(props);
-        let request = serialize(request).unwrap();
-        let result = self.request(&request).unwrap();
+        let result = self.request(&request)?;
 
         let mut hash = HashMap::new();
         props.iter().zip(result.iter()).for_each(|(prop, result1)| {
@@ -57,7 +40,6 @@ impl Bulb {
     ) -> Result<(), String> {
         let request =
             messages_command::SetCtAbx::new(ct_value, effect, duration);
-        let request = serialize(request).unwrap();
         let _ = self.request(&request).unwrap();
         Ok(())
     }
@@ -71,7 +53,6 @@ impl Bulb {
     ) -> Result<(), String> {
         let request =
             messages_command::SetRgb::new(rgb_value, effect, duration);
-        let request = serialize(request).unwrap();
         let _ = self.request(&request).unwrap();
         Ok(())
     }
@@ -85,7 +66,6 @@ impl Bulb {
         duration: types::Duration,
     ) -> Result<(), String> {
         let request = messages_command::SetHsv::new(hue, sat, effect, duration);
-        let request = serialize(request).unwrap();
         let _ = self.request(&request).unwrap();
         Ok(())
     }
@@ -99,7 +79,6 @@ impl Bulb {
     ) -> Result<(), String> {
         let request =
             messages_command::SetBright::new(brightness, effect, duration);
-        let request = serialize(request).unwrap();
         let _ = self.request(&request).unwrap();
         Ok(())
     }
@@ -112,7 +91,6 @@ impl Bulb {
         duration: types::Duration,
     ) -> Result<(), String> {
         let request = messages_command::SetPower::new(power, effect, duration);
-        let request = serialize(request).unwrap();
         let _ = self.request(&request).unwrap();
         Ok(())
     }
@@ -202,29 +180,18 @@ impl Bulb {
         todo!()
     }
 
-    fn request(&self, request: &str) -> Result<Vec<String>, String> {
-        let addr = format!("{}:{}", self.address.to_string(), self.port);
-        let request = format!("{}\r\n", request);
-        let mut stream = TcpStream::connect(addr).unwrap();
-        stream.write(request.as_bytes()).unwrap();
-        let mut ans = [0; 128];
-        stream.read(&mut ans).unwrap();
-        let ans = String::from_utf8_lossy(&ans)
-            .replace("\0", "")
-            .replace("\r\n", "");
-        println!("{:?}", ans);
+    fn request<T>(&self, request: &T) -> Result<Vec<String>, String>
+    where
+        T: Serialize,
+    {
+        let addr = self.bulb_protocol.get_socket_addr();
+        let request = self.bulb_protocol.serialize(request)?;
 
-        if let Ok(response) =
-            serde_json::from_str::<messages_result::Error>(&ans)
-        {
-            Err(String::from(response.error.message))
-        } else if let Ok(response) =
-            serde_json::from_str::<messages_result::Result>(&ans)
-        {
-            Ok(response.result)
-        } else {
-            Err(String::from(""))
-        }
+        let response = tcp_request(&addr, &request)?;
+
+        let response = self.bulb_protocol.deserialize(&response);
+        println!("result: {:?}", response);
+        response
     }
 }
 
@@ -232,14 +199,16 @@ impl Bulb {
 mod tests {
     use std::{thread, time};
 
-    use crate::messages_command::AllProperties;
-    use crate::types;
+    use yeelight_protocol::messages_command::AllProperties;
+    use yeelight_protocol::types;
 
     use super::*;
 
+    const ADDRESS: &str = "192.168.1.104";
+
     #[test]
     fn set_power() {
-        let bulb = Bulb::new("192.168.1.108");
+        let bulb = Bulb::new(ADDRESS);
         bulb.set_power(
             types::Power::Off,
             types::Effect::Smooth,
@@ -259,7 +228,7 @@ mod tests {
 
     #[test]
     fn set_ct_abx() {
-        let bulb = Bulb::new("192.168.1.108");
+        let bulb = Bulb::new(ADDRESS);
         bulb.set_ct_abx(
             types::ColorTemperature::new(3500),
             types::Effect::Smooth,
@@ -270,7 +239,7 @@ mod tests {
 
     #[test]
     fn set_rgb() {
-        let bulb = Bulb::new("192.168.1.108");
+        let bulb = Bulb::new(ADDRESS);
         bulb.set_rgb(
             types::Rgb::new(16711680),
             types::Effect::Smooth,
@@ -281,7 +250,7 @@ mod tests {
 
     #[test]
     fn set_hsv() {
-        let bulb = Bulb::new("192.168.1.108");
+        let bulb = Bulb::new(ADDRESS);
         bulb.set_hsv(
             types::Hue::new(255),
             types::Brightness::new(45),
@@ -293,7 +262,7 @@ mod tests {
 
     #[test]
     fn set_bright() {
-        let bulb = Bulb::new("192.168.1.108");
+        let bulb = Bulb::new(ADDRESS);
         bulb.set_bright(
             types::Brightness::new(50),
             types::Effect::Smooth,
@@ -313,7 +282,7 @@ mod tests {
 
     #[test]
     fn get_prop() {
-        let bulb = Bulb::new("192.168.1.108");
+        let bulb = Bulb::new(ADDRESS);
         let res = bulb
             .get_prop(&vec![
                 AllProperties::ActiveMode,

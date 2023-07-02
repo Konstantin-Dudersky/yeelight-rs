@@ -14,7 +14,6 @@ impl GetProp {
         Self {
             id: 1,
             method: String::from("get_prop"),
-            // params: params.iter().map(|param| String::from(*param)).collect(),
             params: params.to_vec(),
         }
     }
@@ -28,7 +27,8 @@ mod tests {
 
     #[test]
     fn get_prop() {
-        let msg = GetProp::new(&vec![AllProperties::Power]);
+        let msg =
+            GetProp::new(&vec![AllProperties::Power, AllProperties::Bright]);
         let msg_serial = serde_json::to_string(&msg).unwrap();
 
         let json =
