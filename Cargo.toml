@@ -1,3 +1,7 @@
 [workspace]
 
-members = ["./yeelight-protocol", "./yeelight-rust-sync-client"]
+members = [
+    "./yeelight-rest-api",
+    "./yeelight-protocol",
+    "./yeelight-rust-sync-client",
+]

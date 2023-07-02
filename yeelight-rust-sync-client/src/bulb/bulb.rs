@@ -40,7 +40,7 @@ impl Bulb {
     ) -> Result<(), String> {
         let request =
             messages_command::SetCtAbx::new(ct_value, effect, duration);
-        let _ = self.request(&request).unwrap();
+        let _ = self.request(&request)?;
         Ok(())
     }
 
@@ -53,7 +53,7 @@ impl Bulb {
     ) -> Result<(), String> {
         let request =
             messages_command::SetRgb::new(rgb_value, effect, duration);
-        let _ = self.request(&request).unwrap();
+        let _ = self.request(&request)?;
         Ok(())
     }
 
@@ -66,7 +66,7 @@ impl Bulb {
         duration: types::Duration,
     ) -> Result<(), String> {
         let request = messages_command::SetHsv::new(hue, sat, effect, duration);
-        let _ = self.request(&request).unwrap();
+        let _ = self.request(&request)?;
         Ok(())
     }
 
@@ -79,7 +79,7 @@ impl Bulb {
     ) -> Result<(), String> {
         let request =
             messages_command::SetBright::new(brightness, effect, duration);
-        let _ = self.request(&request).unwrap();
+        let _ = self.request(&request)?;
         Ok(())
     }
 
@@ -91,7 +91,7 @@ impl Bulb {
         duration: types::Duration,
     ) -> Result<(), String> {
         let request = messages_command::SetPower::new(power, effect, duration);
-        let _ = self.request(&request).unwrap();
+        let _ = self.request(&request)?;
         Ok(())
     }
 

@@ -1,0 +1,15 @@
+[package]
+name = "yeelight-rest-api"
+version = "0.0.1"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+yeelight-protocol = { path = "../yeelight-protocol" }
+yeelight-rust-sync-client = { path = "../yeelight-rust-sync-client" }
+
+axum = "0.6.18"
+hyper = { version = "0.14.26", features = ["full"] }
+tokio = { version = "1.28.2", features = ["full"] }
+tower = "0.4.13"
