@@ -13,11 +13,9 @@ pub struct BulbProtocol {
 }
 
 impl BulbProtocol {
-    pub fn new(address: &str) -> Self {
+    pub fn new(address: &Ipv4Addr) -> Self {
         Self {
-            address: address
-                .parse::<Ipv4Addr>()
-                .expect("Задан неправильный адрес"),
+            address: address.clone(),
             port: constants::BULB_PORT,
         }
     }

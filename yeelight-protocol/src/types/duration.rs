@@ -2,15 +2,15 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Duration {
-    value: u32,
+    duration: u32,
 }
 
 impl Duration {
     pub fn new(value: u32) -> Self {
-        Self { value }
+        Self { duration: value }
     }
 
     pub fn get_value(&self) -> u32 {
-        self.value
+        self.duration
     }
 }

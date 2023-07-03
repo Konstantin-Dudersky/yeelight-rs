@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, net::Ipv4Addr};
 
 use yeelight_protocol::{bulb_protocol, messages_command, types, Serialize};
 
@@ -9,7 +9,7 @@ pub struct Bulb {
 }
 
 impl Bulb {
-    pub fn new(address: &str) -> Self {
+    pub fn new(address: &Ipv4Addr) -> Self {
         Self {
             bulb_protocol: bulb_protocol::BulbProtocol::new(address),
         }
@@ -204,11 +204,11 @@ mod tests {
 
     use super::*;
 
-    const ADDRESS: &str = "192.168.1.104";
+    const ADDRESS: Ipv4Addr = Ipv4Addr::new(192, 168, 1, 104);
 
     #[test]
     fn set_power() {
-        let bulb = Bulb::new(ADDRESS);
+        let bulb = Bulb::new(&ADDRESS);
         bulb.set_power(
             types::Power::Off,
             types::Effect::Smooth,
@@ -228,7 +228,7 @@ mod tests {
 
     #[test]
     fn set_ct_abx() {
-        let bulb = Bulb::new(ADDRESS);
+        let bulb = Bulb::new(&ADDRESS);
         bulb.set_ct_abx(
             types::ColorTemperature::new(3500),
             types::Effect::Smooth,
@@ -239,7 +239,7 @@ mod tests {
 
     #[test]
     fn set_rgb() {
-        let bulb = Bulb::new(ADDRESS);
+        let bulb = Bulb::new(&ADDRESS);
         bulb.set_rgb(
             types::Rgb::new(16711680),
             types::Effect::Smooth,
@@ -250,7 +250,7 @@ mod tests {
 
     #[test]
     fn set_hsv() {
-        let bulb = Bulb::new(ADDRESS);
+        let bulb = Bulb::new(&ADDRESS);
         bulb.set_hsv(
             types::Hue::new(255),
             types::Brightness::new(45),
@@ -262,7 +262,7 @@ mod tests {
 
     #[test]
     fn set_bright() {
-        let bulb = Bulb::new(ADDRESS);
+        let bulb = Bulb::new(&ADDRESS);
         bulb.set_bright(
             types::Brightness::new(50),
             types::Effect::Smooth,
@@ -282,7 +282,7 @@ mod tests {
 
     #[test]
     fn get_prop() {
-        let bulb = Bulb::new(ADDRESS);
+        let bulb = Bulb::new(&ADDRESS);
         let res = bulb
             .get_prop(&vec![
                 AllProperties::ActiveMode,

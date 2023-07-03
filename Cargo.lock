@@ -810,6 +810,8 @@ version = "0.0.1"
 dependencies = [
  "axum",
  "hyper",
+ "serde",
+ "serde_json",
  "tokio",
  "tower",
  "yeelight-protocol",
